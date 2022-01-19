@@ -91,3 +91,121 @@ public String isDuplicationEmail(@RequestBody RequestLoginForm form) {
 }
 ```
 
+
+
+
+
+
+
+
+
+### 자바 비즈니스 애플리케이션 클래스의 2가지 종류
+
+1. 기능을 수행하는 클래스 : 컨트롤러, 서비스, 퍼시스턴스처럼 로직을 수행
+2. 데이터를 담는 클래스 : 기능에 따라 엔티티, 모델, DTO 등으로 부르지만 이름에 큰 의미를 둘 필요는 없다.
+
+
+
+
+
+
+
+### @Builder
+
+- 오브젝트 생성을 위한 디자인 패턴 중 하나
+- 롬복이 제공하는 @Builder 어노테이션을 사용하면 Builder 클래스를 따로 개발하지 않아도 된다.
+- 생성자를 이용해 생성하는 것과 유사하지만, 생성자 매개변수의 순서를 기억할 필요가 없다는 장점이 있다.
+
+```java
+@Builder
+public class Entity{
+    private String id;
+    private String userId;
+}
+
+Entity entity = Entity.builder()
+    			.id("asdfasdf")
+   				.userId("asdf")
+   				.build();
+```
+
+
+
+
+
+
+
+
+
+### DTO(Data Transfer Object)
+
+- 서비스가 요청을 처리하고 클라이언트로 반환할 때 모델 자체를 그대로 리턴하는 경우는 별로 없다.
+  1. 비즈니스 로직을 캡슐화하기 위함이다. : DB의 스키마를 외부인에게 다 노출할 필요는 없다.
+  2. 클라이언트가 필요한 정보를 모델이 모두 포함하지 않을 수 있다. : 에러 등의 정보는 모델에 없다.
+- 엔티티에서 DTO 변환 로직
+
+```java
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class TodoDto {
+    private String id;
+    private String title;
+    private boolean done;
+
+    public TodoDto(final TodoEntity entity) {
+        this.id = entity.getId();
+        this.title = entity.getTitle();
+        this.done = entity.isDone();
+    }
+}
+```
+
+
+
+
+
+
+
+### 커멘드로 실행하기(빌드와 실행 등 모두 수행)
+
+```
+./gradlew bootRun
+```
+
+
+
+
+
+
+
+### REST 아키텍처
+
+1. 클라이언트-서버
+2. 상태가 없는(stateless)
+3. 캐시되는(Cacheable) 데이터
+4. 일관적인 인터페이스(Uniform Interface)
+5. 레이어 시스템(Layered System)
+6. 코드-온-디멘드(Code-On-Demand)(선택사항)
+
+
+
+
+
+
+
+### Request 데이터 받기
+
+- url 로 간단하게 전달할 때는 @PathVariable 이나 @RequestParam 사용
+- 오브젝트 형태로 복잡한 데이터를 받을 때는 @RequestBody 사용 (파라미터로 DTO 받기)
+
+
+
+
+
+
+
+### 객체를 JSON 으로 리턴하기
+
+RestController이면 그냥 객체를 리턴하면 그대로 JSON으로 변환 후 리턴된다.
