@@ -142,10 +142,9 @@ Entity entity = Entity.builder()
 - 서비스가 요청을 처리하고 클라이언트로 반환할 때 모델 자체를 그대로 리턴하는 경우는 별로 없다.
   1. 비즈니스 로직을 캡슐화하기 위함이다. : DB의 스키마를 외부인에게 다 노출할 필요는 없다.
   2. 클라이언트가 필요한 정보를 모델이 모두 포함하지 않을 수 있다. : 에러 등의 정보는 모델에 없다.
-- 엔티티에서 DTO 변환 로직
+- 엔티티 -> Dto,  Dto -> 엔티티 변환 로직
 
 ```java
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -158,6 +157,14 @@ public class TodoDto {
         this.id = entity.getId();
         this.title = entity.getTitle();
         this.done = entity.isDone();
+    }
+
+    public static TodoEntity toEntity(final TodoDto dto){
+        return TodoEntity.builder()
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .done(dto.isDone())
+                .build();
     }
 }
 ```
@@ -209,3 +216,82 @@ public class TodoDto {
 ### 객체를 JSON 으로 리턴하기
 
 RestController이면 그냥 객체를 리턴하면 그대로 JSON으로 변환 후 리턴된다.
+
+
+
+
+
+### 응답코드 설정 + 객체를 JSON 으로 리턴하기
+
+- ResponseEntity<?> 를 사용하면 JSON 객체 뿐 아니라, 헤더와 Http Status 를 조작할 수 있다.
+
+```java
+@GetMapping("/testResponseEntity")
+public ResponseEntity<?> testControllerResponseEntity() {
+  List<String> list = new ArrayList<>();
+  list.add("test list");
+  ResponseDTO<String> response = ResponseDTO.<String>builder().data(list).build();
+  return ResponseEntity.badRequest().body(response);
+}
+```
+
+
+
+
+
+
+
+### UUID를 엔티티 key로 사용하기
+
+- @GeneratedValue : ID를 자동으로 생성. generator로 어떤 방식으로 id를 생성할지 지정할 수 있다. 기본 Generator로는 INCREMENTAL, SEQUENCE, IDENTITY 등이 있는데, 자신이 커스텀해서 만든 Generator을 사용할 수 있다.
+- @GenericGenerator: name으로 커스텀 generator을 만들고, strategy로 정책을 설정할 수 있다.
+
+```java
+@NoArgsConstructor
+@Data
+@Entity
+public class TodoEntity {
+    @Id
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name="system-uuid", strategy = "uuid")
+    private String id;
+    private String userId;
+    private String title;
+    private boolean done;
+}
+```
+
+
+
+
+
+
+
+### Spring data jpa 에서 쿼리문 사용하기
+
+```java
+@Repository
+public interface TodoRepository extends JpaRepository<TodoEntity, String> {
+    
+    // ?1은 메서드의 매개변수의 순서 위치다.
+    @Query("select * from Todo t where t.userId = ?1")
+    List<TodoEntity> findByUserId(String userId);
+}
+```
+
+
+
+
+
+### exists
+
+- 성능면에서 이득이다.
+- 모든 데이터를 살펴보지 않고, 처음 만다는 데이터에서 바로 리턴을 하니 그럴수밖에..
+
+```java
+@Repository
+public interface UserRepository extends JpaRepository<UserEntity, String> {
+    Boolean existsByEmail(String email);
+}
+```
+
