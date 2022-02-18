@@ -24,7 +24,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic().disable() // token을 사용하므로 basic 인증 disable
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) //session 기반이 아님을 선언
                 .and()
-                .authorizeRequests().antMatchers("/", "/auth/**").permitAll() // / 와 /auth/** 경로는 인증 안해도 됨
+                .authorizeRequests().antMatchers("/**").permitAll() // / 와 /auth/** 경로는 인증 안해도 됨
                 .anyRequest().authenticated(); //이외의 모든 경로는 인증 해야 함
 
         // filter 등록
